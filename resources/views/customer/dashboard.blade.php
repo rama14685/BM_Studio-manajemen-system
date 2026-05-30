@@ -275,10 +275,15 @@
                                         <span>STATUS:</span>
                                         <span class="px-2.5 py-0.5 text-[9px] font-heading border-2 border-black shadow-[1.5px_1.5px_0px_0px_black] uppercase
                                             @if($ub->status === 'paid') bg-[#39FF14] text-black
-                                            @elseif($ub->status === 'pending') bg-[#FFC700] text-black
+                                            @elseif($ub->status === 'dp') bg-[#FFC700] text-black
+                                            @elseif($ub->status === 'pending') bg-white text-black
                                             @else bg-[#E14D2A] text-white
                                             @endif">
-                                            {{ $ub->status }}
+                                            @if($ub->status === 'dp')
+                                                DP: Rp {{ number_format($ub->dp_amount, 0, ',', '.') }}
+                                            @else
+                                                {{ $ub->status }}
+                                            @endif
                                         </span>
                                     </div>
                                 </div>

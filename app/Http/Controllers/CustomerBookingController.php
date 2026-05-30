@@ -27,7 +27,7 @@ class CustomerBookingController extends Controller
         // Get all active bookings for the availability calendar (today onwards)
         $activeBookings = Booking::with(['studio', 'user'])
             ->where('date', '>=', now()->toDateString())
-            ->whereIn('status', ['pending', 'paid'])
+            ->whereIn('status', ['pending', 'paid', 'dp'])
             ->orderBy('date')
             ->orderBy('start_time')
             ->get();
@@ -83,7 +83,7 @@ class CustomerBookingController extends Controller
         // Check overlapping bookings
         $overlap = Booking::where('studio_id', $request->studio_id)
             ->where('date', $request->date)
-            ->whereIn('status', ['pending', 'paid'])
+            ->whereIn('status', ['pending', 'paid', 'dp'])
             ->where(function ($query) use ($startTimeStr, $endTimeStr) {
                 $query->where(function ($q) use ($startTimeStr, $endTimeStr) {
                     $q->where('start_time', '<', $endTimeStr)

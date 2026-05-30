@@ -67,6 +67,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
     Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::post('/bookings/{booking}/pay', [AdminBookingController::class, 'markAsPaid'])->name('bookings.pay');
+    Route::post('/bookings/{booking}/dp', [AdminBookingController::class, 'markAsDp'])->name('bookings.dp');
 
     // Finances CRUD
     Route::resource('finances', AdminFinanceController::class)->except(['show']);

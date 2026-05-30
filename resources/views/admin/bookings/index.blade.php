@@ -94,19 +94,34 @@
                                         <td class="px-6 py-4 border-r-2 border-black whitespace-nowrap font-sans">
                                             <span class="px-2.5 py-0.5 text-[10px] font-heading border-2 border-black shadow-[1.5px_1.5px_0px_0px_black] uppercase
                                                 @if($booking->status === 'paid') bg-[#39FF14] text-black
-                                                @elseif($booking->status === 'pending') bg-[#FFC700] text-black
+                                                @elseif($booking->status === 'dp') bg-[#FFC700] text-black
+                                                @elseif($booking->status === 'pending') bg-white text-black
                                                 @else bg-[#E14D2A] text-white
                                                 @endif">
-                                                {{ $booking->status }}
+                                                @if($booking->status === 'dp')
+                                                    DP: Rp {{ number_format($booking->dp_amount, 0, ',', '.') }}
+                                                @else
+                                                    {{ $booking->status }}
+                                                @endif
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-[10px] font-heading space-x-1.5 font-bold font-sans">
                                             <div class="flex items-center justify-end gap-2">
                                                 <!-- Pay Button -->
-                                                @if($booking->status === 'pending')
+                                                @if($booking->status === 'pending' || $booking->status === 'dp')
                                                     <form action="{{ route('admin.bookings.pay', $booking->id) }}" method="POST" class="inline">
                                                         @csrf
                                                         <button type="submit" class="px-2.5 py-1 bg-[#39FF14] border-2 border-black text-black shadow-[1.5px_1.5px_0px_0px_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">LUNAS</button>
+                                                    </form>
+                                                @endif
+
+                                                <!-- DP Button -->
+                                                @if($booking->status === 'pending')
+                                                    <button type="button" onclick="promptDP({{ $booking->id }}, {{ $booking->total_price }})" class="px-2.5 py-1 bg-[#FFC700] border-2 border-black text-black shadow-[1.5px_1.5px_0px_0px_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">DP</button>
+                                                    
+                                                    <form id="dp-form-{{ $booking->id }}" action="{{ route('admin.bookings.dp', $booking->id) }}" method="POST" class="hidden">
+                                                        @csrf
+                                                        <input type="hidden" name="dp_amount" id="dp-amount-input-{{ $booking->id }}">
                                                     </form>
                                                 @endif
 
@@ -142,4 +157,29 @@
 
         </div>
     </div>
+
+    <!-- DP Prompt Javascript handler -->
+    <script>
+        function promptDP(bookingId, totalPrice) {
+            let defaultAmount = Math.round(totalPrice / 2);
+            let input = prompt("Masukkan nominal uang muka (DP) untuk Booking #" + bookingId + " (Maksimal Rp " + totalPrice.toLocaleString('id-ID') + "):", defaultAmount);
+            
+            if (input === null) return;
+            
+            // Clean non-numeric characters
+            let amount = parseFloat(input.replace(/[^0-9]/g, ''));
+            if (isNaN(amount) || amount <= 0) {
+                alert("Nominal tidak valid!");
+                return;
+            }
+            
+            if (amount > totalPrice) {
+                alert("Nominal DP tidak boleh melebihi total harga booking (Rp " + totalPrice.toLocaleString('id-ID') + ")!");
+                return;
+            }
+            
+            document.getElementById('dp-amount-input-' + bookingId).value = amount;
+            document.getElementById('dp-form-' + bookingId).submit();
+        }
+    </script>
 </x-app-layout>

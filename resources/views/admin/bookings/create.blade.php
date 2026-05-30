@@ -78,10 +78,19 @@
                             <x-input-label for="status" :value="__('Status Pembayaran')" class="text-black font-bold text-sm" />
                             <select id="status" name="status" class="mt-1 block w-full border-[3px] border-[#0D0D0D] bg-white text-black focus:border-[#FFC700] focus:ring-0 rounded-none shadow-[3px_3px_0px_0px_black]" required>
                                 <option value="pending" {{ old('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="dp" {{ old('status') === 'dp' ? 'selected' : '' }}>DP</option>
                                 <option value="paid" {{ old('status') === 'paid' ? 'selected' : '' }}>Paid</option>
                                 <option value="cancelled" {{ old('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                             </select>
                             <x-input-error :messages="$errors->get('status')" class="mt-2 text-[#E14D2A] font-bold" />
+                        </div>
+
+                        <!-- DP Amount Input (Show / hide dynamically) -->
+                        <div id="dp_amount_container" class="hidden">
+                            <x-input-label for="dp_amount" :value="__('Nominal DP (Uang Muka)')" class="text-black font-bold text-sm" />
+                            <input id="dp_amount" type="number" name="dp_amount" value="{{ old('dp_amount') }}"
+                                class="mt-1 block w-full border-[3px] border-[#0D0D0D] bg-white text-black focus:border-[#FFC700] focus:ring-0 rounded-none shadow-[3px_3px_0px_0px_black]" placeholder="Masukkan nominal DP...">
+                            <x-input-error :messages="$errors->get('dp_amount')" class="mt-2 text-[#E14D2A] font-bold" />
                         </div>
 
                         <!-- Estimasi display -->
@@ -113,6 +122,16 @@
             const studioSelect = document.getElementById('studio_id');
             const durationSelect = document.getElementById('duration');
             const totalDisplay = document.getElementById('total_price_display');
+            const statusSelect = document.getElementById('status');
+            const dpAmountContainer = document.getElementById('dp_amount_container');
+
+            function toggleDpInput() {
+                if (statusSelect.value === 'dp') {
+                    dpAmountContainer.classList.remove('hidden');
+                } else {
+                    dpAmountContainer.classList.add('hidden');
+                }
+            }
 
             function calculateTotal() {
                 const selectedOption = studioSelect.options[studioSelect.selectedIndex];
@@ -134,8 +153,11 @@
                 totalDisplay.textContent = formatted;
             }
 
+            statusSelect.addEventListener('change', toggleDpInput);
             studioSelect.addEventListener('change', calculateTotal);
             durationSelect.addEventListener('change', calculateTotal);
+            
+            toggleDpInput();
             calculateTotal();
         });
     </script>

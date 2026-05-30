@@ -52,7 +52,8 @@ class AdminBookingController extends Controller
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'duration' => 'required|integer|min:1|max:12',
-            'status' => 'required|in:pending,paid,cancelled',
+            'status' => 'required|in:pending,paid,cancelled,dp',
+            'dp_amount' => 'required_if:status,dp|nullable|numeric|min:0',
         ]);
 
         $studio = Studio::findOrFail($request->studio_id);
@@ -65,7 +66,7 @@ class AdminBookingController extends Controller
         // Check overlap
         $overlap = Booking::where('studio_id', $request->studio_id)
             ->where('date', $request->date)
-            ->whereIn('status', ['pending', 'paid'])
+            ->whereIn('status', ['pending', 'paid', 'dp'])
             ->where(function ($query) use ($startTimeStr, $endTimeStr) {
                 $query->where(function ($q) use ($startTimeStr, $endTimeStr) {
                     $q->where('start_time', '<', $endTimeStr)
@@ -90,6 +91,7 @@ class AdminBookingController extends Controller
             'end_time' => $endTimeStr,
             'total_price' => $totalPrice,
             'status' => $request->status,
+            'dp_amount' => $request->status === 'dp' ? $request->dp_amount : null,
         ]);
 
         // If status is paid, record in finances
@@ -100,6 +102,15 @@ class AdminBookingController extends Controller
                 'category' => 'booking',
                 'amount' => $booking->total_price,
                 'description' => "Pembayaran Booking #{$booking->id} oleh {$user->name} (Manual/Walk-in)",
+                'date' => $booking->date,
+            ]);
+        } elseif ($booking->status === 'dp') {
+            $user = User::find($booking->user_id);
+            Finance::create([
+                'type' => 'income',
+                'category' => 'booking',
+                'amount' => $booking->dp_amount,
+                'description' => "Pembayaran DP Booking #{$booking->id} oleh {$user->name} (Manual/Walk-in)",
                 'date' => $booking->date,
             ]);
         }
@@ -137,7 +148,8 @@ class AdminBookingController extends Controller
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'duration' => 'required|integer|min:1|max:12',
-            'status' => 'required|in:pending,paid,cancelled',
+            'status' => 'required|in:pending,paid,cancelled,dp',
+            'dp_amount' => 'required_if:status,dp|nullable|numeric|min:0',
         ]);
 
         $studio = Studio::findOrFail($request->studio_id);
@@ -151,7 +163,7 @@ class AdminBookingController extends Controller
         $overlap = Booking::where('id', '!=', $booking->id)
             ->where('studio_id', $request->studio_id)
             ->where('date', $request->date)
-            ->whereIn('status', ['pending', 'paid'])
+            ->whereIn('status', ['pending', 'paid', 'dp'])
             ->where(function ($query) use ($startTimeStr, $endTimeStr) {
                 $query->where(function ($q) use ($startTimeStr, $endTimeStr) {
                     $q->where('start_time', '<', $endTimeStr)
@@ -168,6 +180,7 @@ class AdminBookingController extends Controller
 
         $totalPrice = $studio->price_per_hour * $request->duration;
         $oldStatus = $booking->status;
+        $oldDpAmount = $booking->dp_amount;
 
         $booking->update([
             'user_id' => $request->user_id,
@@ -177,25 +190,35 @@ class AdminBookingController extends Controller
             'end_time' => $endTimeStr,
             'total_price' => $totalPrice,
             'status' => $request->status,
+            'dp_amount' => $request->status === 'dp' ? $request->dp_amount : null,
         ]);
 
         // Finance entry sync
-        if ($booking->status === 'paid' && $oldStatus !== 'paid') {
-            // Log income
-            $user = User::find($booking->user_id);
-            Finance::create([
-                'type' => 'income',
-                'category' => 'booking',
-                'amount' => $booking->total_price,
-                'description' => "Pembayaran Booking #{$booking->id} oleh {$user->name}",
-                'date' => $booking->date,
-            ]);
-        } elseif ($booking->status !== 'paid' && $oldStatus === 'paid') {
-            // If status changed from paid to something else, we should remove or cancel the finance log
+        if ($booking->status !== $oldStatus || ($booking->status === 'dp' && $booking->dp_amount != $oldDpAmount)) {
+            // Delete any existing booking finance record
             Finance::where('type', 'income')
                 ->where('category', 'booking')
                 ->where('description', 'like', "%Booking #{$booking->id}%")
                 ->delete();
+
+            $user = User::find($booking->user_id);
+            if ($booking->status === 'paid') {
+                Finance::create([
+                    'type' => 'income',
+                    'category' => 'booking',
+                    'amount' => $booking->total_price,
+                    'description' => "Pembayaran Booking #{$booking->id} oleh {$user->name}",
+                    'date' => $booking->date,
+                ]);
+            } elseif ($booking->status === 'dp') {
+                Finance::create([
+                    'type' => 'income',
+                    'category' => 'booking',
+                    'amount' => $booking->dp_amount,
+                    'description' => "Pembayaran DP Booking #{$booking->id} oleh {$user->name}",
+                    'date' => $booking->date,
+                ]);
+            }
         }
 
         return redirect()->route('admin.bookings.index')->with('success', 'Booking berhasil diperbarui.');
@@ -209,8 +232,8 @@ class AdminBookingController extends Controller
         $oldStatus = $booking->status;
         $booking->update(['status' => 'cancelled']);
 
-        if ($oldStatus === 'paid') {
-            // Remove the finance log if it was previously marked paid
+        if ($oldStatus === 'paid' || $oldStatus === 'dp') {
+            // Remove the finance log if it was previously marked paid or dp
             Finance::where('type', 'income')
                 ->where('category', 'booking')
                 ->where('description', 'like', "%Booking #{$booking->id}%")
@@ -226,7 +249,17 @@ class AdminBookingController extends Controller
     public function markAsPaid(Booking $booking)
     {
         if ($booking->status !== 'paid') {
-            $booking->update(['status' => 'paid']);
+            // Remove any old DP or other finance logs first
+            Finance::where('type', 'income')
+                ->where('category', 'booking')
+                ->where('description', 'like', "%Booking #{$booking->id}%")
+                ->delete();
+
+            $booking->update([
+                'status' => 'paid',
+                'dp_amount' => null // Clear DP amount if fully paid
+            ]);
+            
             $user = User::find($booking->user_id);
             Finance::create([
                 'type' => 'income',
@@ -241,11 +274,43 @@ class AdminBookingController extends Controller
     }
 
     /**
+     * Mark a booking as DP directly.
+     */
+    public function markAsDp(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'dp_amount' => 'required|numeric|min:0|max:' . $booking->total_price,
+        ]);
+
+        // Remove any old finance logs first
+        Finance::where('type', 'income')
+            ->where('category', 'booking')
+            ->where('description', 'like', "%Booking #{$booking->id}%")
+            ->delete();
+
+        $booking->update([
+            'status' => 'dp',
+            'dp_amount' => $request->dp_amount,
+        ]);
+
+        $user = User::find($booking->user_id);
+        Finance::create([
+            'type' => 'income',
+            'category' => 'booking',
+            'amount' => $request->dp_amount,
+            'description' => "Pembayaran DP Booking #{$booking->id} oleh {$user->name}",
+            'date' => $booking->date,
+        ]);
+
+        return back()->with('success', 'Status booking berhasil diubah menjadi DP.');
+    }
+
+    /**
      * Delete a booking from database.
      */
     public function destroy(Booking $booking)
     {
-        if ($booking->status === 'paid') {
+        if ($booking->status === 'paid' || $booking->status === 'dp') {
             Finance::where('type', 'income')
                 ->where('category', 'booking')
                 ->where('description', 'like', "%Booking #{$booking->id}%")

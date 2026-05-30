@@ -232,9 +232,19 @@
                                 {{ \Carbon\Carbon::parse($transaction->booking->date)->format('d/m/y') }} 
                                 ({{ \Carbon\Carbon::parse($transaction->booking->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($transaction->booking->end_time)->format('H:i') }})
                             </span>
+                            @if($transaction->booking->dp_amount > 0)
+                                <br><span style="font-size: 9px; opacity: 0.8; color: #E14D2A;">DP sudah dibayar: -Rp {{ number_format($transaction->booking->dp_amount, 0, ',', '.') }}</span>
+                            @endif
                         </td>
                         <td style="text-align: center;">1</td>
-                        <td class="text-right">Rp {{ number_format($transaction->booking->total_price, 0, ',', '.') }}</td>
+                        <td class="text-right">
+                            @if($transaction->booking->dp_amount > 0)
+                                <span style="text-decoration: line-through; font-size: 10px; opacity: 0.6;">Rp {{ number_format($transaction->booking->total_price, 0, ',', '.') }}</span><br>
+                                Rp {{ number_format($transaction->booking->total_price - $transaction->booking->dp_amount, 0, ',', '.') }}
+                            @else
+                                Rp {{ number_format($transaction->booking->total_price, 0, ',', '.') }}
+                            @endif
+                        </td>
                     </tr>
                 @endif
 
@@ -256,7 +266,14 @@
             @if($transaction->booking)
                 <tr>
                     <td colspan="2">Sewa Studio:</td>
-                    <td class="text-right">Rp {{ number_format($transaction->booking->total_price, 0, ',', '.') }}</td>
+                    <td class="text-right">
+                        @if($transaction->booking->dp_amount > 0)
+                            <span style="font-size: 10px; font-weight: normal; opacity: 0.7;">(Total Rp {{ number_format($transaction->booking->total_price, 0, ',', '.') }})</span> 
+                            Rp {{ number_format($transaction->booking->total_price - $transaction->booking->dp_amount, 0, ',', '.') }}
+                        @else
+                            Rp {{ number_format($transaction->booking->total_price, 0, ',', '.') }}
+                        @endif
+                    </td>
                 </tr>
             @endif
             @php

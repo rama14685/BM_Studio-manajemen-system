@@ -31,8 +31,8 @@
                                 <select id="booking_select" name="booking_id" class="mt-1 block w-full border-[3px] border-[#0D0D0D] bg-white text-black focus:border-[#FFC700] focus:ring-0 rounded-none shadow-[3px_3px_0px_0px_rgba(13,13,13,1)]">
                                     <option value="" data-price="0">-- Tanpa Booking (Hanya Beli Minuman) --</option>
                                     @foreach($bookings as $b)
-                                        <option value="{{ $b->id }}" data-price="{{ $b->total_price }}" data-user="{{ $b->user->name }}" data-studio="{{ $b->studio->name }}">
-                                            Booking #{{ $b->id }} - {{ $b->user->name }} ({{ $b->studio->name }} | {{ Carbon\Carbon::parse($b->date)->format('d M') }} | Rp. {{ number_format($b->total_price, 0, ',', '.') }})
+                                        <option value="{{ $b->id }}" data-price="{{ $b->status === 'dp' ? ($b->total_price - $b->dp_amount) : $b->total_price }}" data-user="{{ $b->user->name }}" data-studio="{{ $b->studio->name }}">
+                                            Booking #{{ $b->id }} - {{ $b->user->name }} ({{ $b->studio->name }} | {{ Carbon\Carbon::parse($b->date)->format('d M') }} | {{ $b->status === 'dp' ? 'Sisa Rp. ' . number_format($b->total_price - $b->dp_amount, 0, ',', '.') : 'Rp. ' . number_format($b->total_price, 0, ',', '.') }})
                                         </option>
                                     @endforeach
                                 </select>

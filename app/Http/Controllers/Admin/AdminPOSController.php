@@ -18,9 +18,9 @@ class AdminPOSController extends Controller
      */
     public function index()
     {
-        // Get pending bookings that haven't been paid yet
+        // Get pending or dp bookings that haven't been paid yet
         $bookings = Booking::with(['user', 'studio'])
-            ->where('status', 'pending')
+            ->whereIn('status', ['pending', 'dp'])
             ->orderBy('date')
             ->orderBy('start_time')
             ->get();
@@ -56,7 +56,7 @@ class AdminPOSController extends Controller
                 if ($booking->status === 'paid') {
                     return back()->with('error', 'Booking ini sudah dibayar.');
                 }
-                $bookingPrice = $booking->total_price;
+                $bookingPrice = $booking->status === 'dp' ? ($booking->total_price - $booking->dp_amount) : $booking->total_price;
             }
 
             // Calculate drinks subtotal and validate stocks
@@ -111,13 +111,17 @@ class AdminPOSController extends Controller
 
             // 1. Log Studio Booking Income (if exists)
             if ($booking) {
+                $desc = $booking->status === 'dp' 
+                    ? "Pembayaran Sisa Booking #{$booking->id} oleh {$booking->user->name} via POS" 
+                    : "Pembayaran Booking #{$booking->id} oleh {$booking->user->name} via POS";
+
                 $booking->update(['status' => 'paid']);
                 
                 Finance::create([
                     'type' => 'income',
                     'category' => 'booking',
                     'amount' => $bookingPrice,
-                    'description' => "Pembayaran Booking #{$booking->id} oleh {$booking->user->name} via POS",
+                    'description' => $desc,
                     'date' => $dateToday,
                 ]);
             }
