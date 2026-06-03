@@ -19,6 +19,9 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'role' => 'admin',
             'phone' => '08123456789',
+            'shift_start' => '08:00:00',
+            'shift_end' => '23:00:00',
+            'face_features' => json_encode(array_fill(0, 128, 0.1)),
         ]);
 
         User::create([

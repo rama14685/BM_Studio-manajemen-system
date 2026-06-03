@@ -9,12 +9,17 @@ use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\Admin\AdminFinanceController;
 use App\Http\Controllers\Admin\AdminInventoryController;
 use App\Http\Controllers\Admin\AdminPOSController;
+use App\Http\Controllers\Admin\AdminFaceVerificationController;
+use App\Http\Controllers\Admin\AdminEmployeeController;
+use App\Http\Controllers\Admin\AdminCarouselController;
+use App\Models\CarouselItem;
 
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
-    return view('welcome');
+    $carouselItems = CarouselItem::all();
+    return view('welcome', compact('carouselItems'));
 });
 
 // Custom Authentication Routes
@@ -54,8 +59,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/chat/fetch/{otherUserId}', [ChatController::class, 'fetchMessages'])->name('chat.fetch');
 });
 
-// Admin routes
+// Admin Verification Routes (Require auth + role but NOT yet face verified)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/verify-face', [AdminFaceVerificationController::class, 'show'])->name('verify-face');
+    Route::post('/verify-face', [AdminFaceVerificationController::class, 'verify'])->name('verify-face.post');
+});
+
+// Admin Console Routes (Protected by full face verification)
+Route::middleware(['auth', 'role:admin', 'admin.face.verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
     // Bookings CRUD & actions
@@ -79,6 +90,20 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/inventories/{inventory}', [AdminInventoryController::class, 'update'])->name('inventories.update');
     Route::delete('/inventories/{inventory}', [AdminInventoryController::class, 'destroy'])->name('inventories.destroy');
     Route::post('/inventories/{inventory}/adjust', [AdminInventoryController::class, 'adjustStock'])->name('inventories.adjust');
+
+    // Employee CRUD
+    Route::get('/employees', [AdminEmployeeController::class, 'index'])->name('employees.index');
+    Route::post('/employees', [AdminEmployeeController::class, 'store'])->name('employees.store');
+    Route::post('/employees/detect-face', [AdminEmployeeController::class, 'detectFace'])->name('employees.detect-face');
+    Route::get('/employees/{employee}/edit', [AdminEmployeeController::class, 'edit'])->name('employees.edit');
+    Route::put('/employees/{employee}', [AdminEmployeeController::class, 'update'])->name('employees.update');
+    Route::delete('/employees/{employee}', [AdminEmployeeController::class, 'destroy'])->name('employees.destroy');
+
+    // Carousel CMS
+    Route::get('/carousel', [AdminCarouselController::class, 'index'])->name('carousel.index');
+    Route::post('/carousel', [AdminCarouselController::class, 'store'])->name('carousel.store');
+    Route::post('/carousel/{carouselItem}/update', [AdminCarouselController::class, 'update'])->name('carousel.update');
+    Route::delete('/carousel/{carouselItem}', [AdminCarouselController::class, 'destroy'])->name('carousel.destroy');
 
     // POS Kasir
     Route::get('/pos', [AdminPOSController::class, 'index'])->name('pos.index');

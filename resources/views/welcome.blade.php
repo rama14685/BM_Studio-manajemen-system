@@ -136,10 +136,10 @@
     </header>
 
     <!-- CONTENT SECTIONS (Z-20) -->
-    <main class="flex-grow space-y-36 pb-36 relative z-20">
+    <main class="flex-grow space-y-16 pb-20 relative z-20">
 
         <!-- 1. HERO SECTION -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 text-center space-y-10 relative">
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 text-center space-y-6 relative">
             <div class="inline-flex items-center space-x-2 bg-[#FFC700] border-[3px] border-[#0D0D0D] px-6 py-2.5 font-heading text-sm uppercase text-[#0D0D0D] tracking-widest shadow-[3.5px_3.5px_0px_0px_rgba(13,13,13,1)]">
                 <span>⚡ ROCK AND ROLL MUSIC HUB</span>
             </div>
@@ -148,11 +148,11 @@
                 LOUDER.<br>BETTER.<br><span class="text-[#E14D2A]">YOUR STAGE.</span>
             </h1>
             
-            <p class="text-base sm:text-xl text-[#0D0D0D] max-w-2xl mx-auto font-extrabold leading-relaxed pt-4">
+            <p class="text-base sm:text-xl text-[#0D0D0D] max-w-2xl mx-auto font-extrabold leading-relaxed pt-2">
                 Mainkan musikmu tanpa kompromi. Gear panggung premium, studio kedap suara maksimal, dan booking slot instan kapan saja.
             </p>
 
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6 pt-2">
                 @auth
                     <a href="{{ route('dashboard') }}" class="w-full sm:w-auto px-10 py-5 bg-[#FFC700] border-[3px] border-[#0D0D0D] text-[#0D0D0D] font-heading text-md uppercase tracking-wider shadow-[5px_5px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all text-center">
                         BUKA DASHBOARD ANDA
@@ -165,68 +165,81 @@
             </div>
 
             <!-- Central Open Spacing Placeholder where 3D Guitar and Drums float -->
-            <div class="h-60 sm:h-96 w-full flex items-center justify-center select-none">
+            <div class="h-16 sm:h-24 w-full flex items-center justify-center select-none">
             </div>
         </section>
 
-        <!-- 2. FEATURES/GEAR SECTION -->
-        <section id="features-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 relative">
-            <div class="text-center space-y-2">
-                <h2 class="text-4xl sm:text-5xl font-heading uppercase tracking-wider text-[#0D0D0D] drop-shadow-[2px_2px_0px_#FFC700]">
-                    ⚡ GEARS & FACILITIES ⚡
-                </h2>
-                <p class="text-xs sm:text-sm text-zinc-600 font-bold uppercase tracking-widest">Kualitas panggung konser langsung di dalam ruang studio latihan</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Card 1: Top-Tier Amps -->
-                <div class="bg-white border-[3px] border-[#0D0D0D] p-8 shadow-[5px_5px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 flex flex-col justify-between min-h-[300px]">
+        <!-- 2. STUDIO GALLERY CAROUSEL (DYNAMIC COVERFLOW) -->
+        <section id="studio-gallery" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2 relative z-30" 
+            x-data="{ 
+                activeSlide: {{ count($carouselItems) > 0 ? floor(count($carouselItems) / 2) : 0 }},
+                totalSlides: {{ count($carouselItems) }},
+                scrollNext() { 
+                    if (this.activeSlide < this.totalSlides - 1) this.activeSlide++; 
+                    else this.activeSlide = 0; 
+                }, 
+                scrollPrev() { 
+                    if (this.activeSlide > 0) this.activeSlide--; 
+                    else this.activeSlide = this.totalSlides - 1; 
+                } 
+            }">
+            <div class="border-[3px] border-[#0D0D0D] bg-white p-6 shadow-[5px_5px_0px_0px_#0D0D0D]">
+                <div class="flex justify-between items-center mb-6 border-b-[3px] border-black pb-4">
                     <div>
-                        <div class="w-12 h-12 border-[2.5px] border-black bg-[#FFC700] flex items-center justify-center font-heading text-base shadow-[2px_2px_0px_0px_black] mb-6">
-                            01
-                        </div>
-                        <h3 class="text-2xl font-heading uppercase text-black">Top-Tier Amps</h3>
-                        <p class="text-xs sm:text-sm text-zinc-700 mt-4 font-bold leading-relaxed">
-                            Pilihan kabinet gahar Marshall JCM900, Marshall MG100, Ampeg SVT Bass Amp, dan Roland JC-120 Jazz Chorus untuk dentuman nada presisi.
-                        </p>
+                        <h2 class="text-3xl sm:text-4xl font-heading uppercase tracking-wider text-[#0D0D0D] drop-shadow-[1.5px_1.5px_0px_#FFC700]">
+                            ⚡ STUDIO ROOMS GALLERY ⚡
+                        </h2>
+                        <p class="text-[10px] sm:text-xs text-zinc-650 font-bold uppercase tracking-widest mt-1">Eksplorasi studio latihan & rekaman profesional kami (CMS Dynamic Coverflow)</p>
+                    </div>
+                    <!-- Navigation Buttons -->
+                    <div class="flex space-x-3">
+                        <button @click="scrollPrev()" class="p-3 border-[3px] border-[#0D0D0D] bg-[#FFC700] hover:bg-[#E14D2A] text-black hover:text-white font-black text-sm shadow-[2px_2px_0px_0px_#0D0D0D] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer">
+                            &larr;
+                        </button>
+                        <button @click="scrollNext()" class="p-3 border-[3px] border-[#0D0D0D] bg-[#E14D2A] hover:bg-[#FFC700] text-white hover:text-black font-black text-sm shadow-[2px_2px_0px_0px_#0D0D0D] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer">
+                            &rarr;
+                        </button>
                     </div>
                 </div>
 
-                <!-- Card 2: Soundproof Rooms -->
-                <div class="bg-white border-[3px] border-[#0D0D0D] p-8 shadow-[5px_5px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 flex flex-col justify-between min-h-[300px]">
-                    <div>
-                        <div class="w-12 h-12 border-[2.5px] border-black bg-[#E14D2A] text-white flex items-center justify-center font-heading text-base shadow-[2px_2px_0px_0px_black] mb-6">
-                            02
-                        </div>
-                        <h3 class="text-2xl font-heading uppercase text-black">Soundproof Rooms</h3>
-                        <p class="text-xs sm:text-sm text-zinc-700 mt-4 font-bold leading-relaxed">
-                            Insulasi akustik akustik ganda dengan busa absorber berkualitas tinggi. Mainkan musik berdistorsi tebal tanpa gangguan kebisingan eksternal.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Card 3: Pro Drum Kits -->
-                <div class="bg-white border-[3px] border-[#0D0D0D] p-8 shadow-[5px_5px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 flex flex-col justify-between min-h-[300px]">
-                    <div>
-                        <div class="w-12 h-12 border-[2.5px] border-black bg-[#FFC700] flex items-center justify-center font-heading text-base shadow-[2px_2px_0px_0px_black] mb-6">
-                            03
-                        </div>
-                        <h3 class="text-2xl font-heading uppercase text-black">Pro Drum Kits</h3>
-                        <p class="text-xs sm:text-sm text-zinc-700 mt-4 font-bold leading-relaxed">
-                            Pearl Drum Export Series akustik dipasangkan dengan Cymbal Set Meinl HCS/Zildjian Planet Z tebal untuk ketukan ritme bertenaga.
-                        </p>
-                    </div>
+                <!-- Coverflow Container -->
+                <div class="relative w-full h-[380px] sm:h-[460px] flex items-center justify-center overflow-hidden bg-[#F4F1EA] border-[3px] border-black shadow-[3px_3px_0px_0px_black]">
+                    @if(count($carouselItems) === 0)
+                        <p class="font-mono text-zinc-500 font-bold">[ BELUM ADA DATA CAROUSEL CMS ]</p>
+                    @else
+                        @foreach($carouselItems as $idx => $item)
+                            <div 
+                                x-show="activeSlide === {{ $idx }} || activeSlide - 1 === {{ $idx }} || activeSlide + 1 === {{ $idx }} || (activeSlide === 0 && {{ $idx }} === totalSlides - 1) || (activeSlide === totalSlides - 1 && {{ $idx }} === 0)"
+                                :class="{
+                                    'scale-100 sm:scale-105 z-30 opacity-100 border-[#E14D2A] shadow-[6px_6px_0px_0px_rgba(13,13,13,1)]': activeSlide === {{ $idx }},
+                                    'scale-85 sm:scale-90 z-20 opacity-60 border-[#0D0D0D] shadow-[3px_3px_0px_0px_rgba(13,13,13,1)] -translate-x-32 sm:-translate-x-48 -rotate-6': (activeSlide > {{ $idx }} && !(activeSlide === totalSlides - 1 && {{ $idx }} === 0)) || (activeSlide === 0 && {{ $idx }} === totalSlides - 1),
+                                    'scale-85 sm:scale-90 z-20 opacity-60 border-[#0D0D0D] shadow-[3px_3px_0px_0px_rgba(13,13,13,1)] translate-x-32 sm:translate-x-48 rotate-6': (activeSlide < {{ $idx }} && !(activeSlide === 0 && {{ $idx }} === totalSlides - 1)) || (activeSlide === totalSlides - 1 && {{ $idx }} === 0)
+                                }"
+                                class="transition-all duration-300 ease-out absolute bg-white border-[3px] p-4 w-[260px] sm:w-[360px] h-[320px] sm:h-[400px] flex-shrink-0 cursor-pointer select-none"
+                                @click="activeSlide = {{ $idx }}"
+                            >
+                                <div class="overflow-hidden border-[3px] border-black h-36 sm:h-52 mb-4 bg-zinc-900 flex items-center justify-center">
+                                    <img src="{{ $item->image_path }}" alt="{{ $item->title }}" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex justify-between items-center border-b-2 border-black/10 pb-2 mb-2 font-heading">
+                                    <h3 class="text-sm sm:text-base uppercase text-black">{{ $item->title }}</h3>
+                                    <span class="px-2 py-0.5 text-[8px] bg-[#FFC700] border-2 border-black shadow-[1px_1px_0px_0px_black] uppercase font-bold text-black">CMS ITEM</span>
+                                </div>
+                                <p class="text-[11px] text-zinc-650 font-bold leading-normal text-ellipsis overflow-hidden h-12">{{ $item->description }}</p>
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
             </div>
         </section>
 
-        <!-- 3. PRICING/PACKAGES SECTION -->
+        <!-- 3. PRICING/PACKAGES SECTION (SWAPPED TO FIRST POSITION) -->
         <section id="pricing-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 relative">
             <div class="text-center space-y-2">
                 <h2 class="text-4xl sm:text-5xl font-heading uppercase tracking-wider text-[#0D0D0D] drop-shadow-[2px_2px_0px_#FFC700]">
                     💰 STUDIO PACKAGES 💰
                 </h2>
-                <p class="text-xs sm:text-sm text-zinc-600 font-bold uppercase tracking-widest">Tarif transparan flat bersahabat untuk latihan band dan recording</p>
+                <p class="text-xs sm:text-sm text-zinc-650 font-bold uppercase tracking-widest">Tarif transparan flat bersahabat untuk latihan band dan recording</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
@@ -271,7 +284,7 @@
                 <!-- Package 3: Full Day Recording -->
                 <div class="bg-[#E14D2A] border-[3px] border-[#0D0D0D] p-8 shadow-[5px_5px_0px_0px_#0D0D0D] text-white flex flex-col justify-between space-y-6">
                     <div class="space-y-4">
-                        <span class="px-3 py-1 border-2 border-black bg-white text-black font-heading text-[10px] uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_black]">FULL RECORDING</span>
+                        <span class="px-3 py-1 border-2 border-2 border-black bg-white text-black font-heading text-[10px] uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_black]">FULL RECORDING</span>
                         <h3 class="text-3xl font-heading uppercase text-white">Pro Session</h3>
                         <p class="text-xs text-white/95 font-bold leading-relaxed">Sewa studio penuh satu hari lengkap dengan operator sound engineer untuk multitrack tracking.</p>
                         
@@ -283,6 +296,57 @@
                     <a href="{{ route('register') }}" class="w-full inline-flex justify-center items-center py-3 bg-[#FFC700] hover:bg-black hover:text-white border-[2.5px] border-black text-black font-heading text-xs uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
                         ORDER SESSION &rarr;
                     </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. FEATURES/GEAR SECTION (SWAPPED TO SECOND POSITION) -->
+        <section id="features-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 relative">
+            <div class="text-center space-y-2">
+                <h2 class="text-4xl sm:text-5xl font-heading uppercase tracking-wider text-[#0D0D0D] drop-shadow-[2px_2px_0px_#FFC700]">
+                    ⚡ GEARS & FACILITIES ⚡
+                </h2>
+                <p class="text-xs sm:text-sm text-zinc-650 font-bold uppercase tracking-widest">Kualitas panggung konser langsung di dalam ruang studio latihan</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1: Top-Tier Amps -->
+                <div class="bg-white border-[3px] border-[#0D0D0D] p-8 shadow-[5px_5px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 flex flex-col justify-between min-h-[300px]">
+                    <div>
+                        <div class="w-12 h-12 border-[2.5px] border-black bg-[#FFC700] flex items-center justify-center font-heading text-base shadow-[2px_2px_0px_0px_black] mb-6">
+                            01
+                        </div>
+                        <h3 class="text-2xl font-heading uppercase text-black">Top-Tier Amps</h3>
+                        <p class="text-xs sm:text-sm text-zinc-700 mt-4 font-bold leading-relaxed">
+                            Pilihan kabinet gahar Marshall JCM900, Marshall MG100, Ampeg SVT Bass Amp, dan Roland JC-120 Jazz Chorus untuk dentuman nada presisi.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Soundproof Rooms -->
+                <div class="bg-white border-[3px] border-[#0D0D0D] p-8 shadow-[5px_5px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 flex flex-col justify-between min-h-[300px]">
+                    <div>
+                        <div class="w-12 h-12 border-[2.5px] border-black bg-[#E14D2A] text-white flex items-center justify-center font-heading text-base shadow-[2px_2px_0px_0px_black] mb-6">
+                            02
+                        </div>
+                        <h3 class="text-2xl font-heading uppercase text-black">Soundproof Rooms</h3>
+                        <p class="text-xs sm:text-sm text-zinc-700 mt-4 font-bold leading-relaxed">
+                            Insulasi akustik akustik ganda dengan busa absorber berkualitas tinggi. Mainkan musik berdistorsi tebal tanpa gangguan kebisingan eksternal.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Pro Drum Kits -->
+                <div class="bg-white border-[3px] border-[#0D0D0D] p-8 shadow-[5px_5px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all duration-200 flex flex-col justify-between min-h-[300px]">
+                    <div>
+                        <div class="w-12 h-12 border-[2.5px] border-black bg-[#FFC700] flex items-center justify-center font-heading text-base shadow-[2px_2px_0px_0px_black] mb-6">
+                            03
+                        </div>
+                        <h3 class="text-2xl font-heading uppercase text-black">Pro Drum Kits</h3>
+                        <p class="text-xs sm:text-sm text-zinc-700 mt-4 font-bold leading-relaxed">
+                            Pearl Drum Export Series akustik dipasangkan dengan Cymbal Set Meinl HCS/Zildjian Planet Z tebal untuk ketukan ritme bertenaga.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -335,34 +399,34 @@
                     drums.style.opacity = '0.85';
 
                     // Parallax interpolation based on scroll positions
-                    if (scrollY < 650) {
-                        // Hero scroll phase (0 to 650px)
-                        const t = scrollY / 650;
+                    if (scrollY < 950) {
+                        // Hero scroll phase (0 to 950px)
+                        const t = scrollY / 950;
                         
                         // Guitar starts in hero center-left, slides to gears right margin
                         guitarX = -5 + (65 - (-5)) * t; 
-                        guitarY = 350 + (600 - 350) * t;
+                        guitarY = 250 + (900 - 250) * t;
                         guitarRot = 20 + (-70 - 20) * t; // rotates from 20deg to -70deg
                         guitarScale = 1.15 + (0.9 - 1.15) * t;
 
                         // Drums start in hero center-right, slides to gears left margin
                         drumsX = 72 + (3 - 72) * t;
-                        drumsY = 360 + (800 - 360) * t;
+                        drumsY = 260 + (1100 - 260) * t;
                         drumsRot = -15 + (45 - (-15)) * t;
                         drumsScale = 1.05 + (0.8 - 1.05) * t;
                     } else {
-                        // Features to Pricing scroll phase (650px onwards)
-                        const t = Math.min(1, (scrollY - 650) / 800);
+                        // Features to Pricing scroll phase (950px onwards)
+                        const t = Math.min(1, (scrollY - 950) / 800);
 
                         // Guitar floats from gears right back to pricing left
                         guitarX = 65 + (-85 - 65) * t;
-                        guitarY = 600 + (1000 - 600) * t;
+                        guitarY = 900 + (1400 - 900) * t;
                         guitarRot = -70 + (150 - (-70)) * t;
                         guitarScale = 0.9 + (0.75 - 0.9) * t;
 
                         // Drums float from gears left to pricing right
                         drumsX = 3 + (75 - 3) * t;
-                        drumsY = 800 + (850 - 800) * t;
+                        drumsY = 1100 + (1300 - 1100) * t;
                         drumsRot = 45 + (-60 - 45) * t;
                         drumsScale = 0.8 + (0.7 - 0.8) * t;
                     }

@@ -15,13 +15,13 @@
                         <a href="{{ route('admin.chat.index') }}" class="text-xs font-bold text-zinc-600 hover:text-[#E14D2A] flex items-center">&larr; Kembali ke Pusat Chat</a>
                         <h3 class="font-heading text-xs uppercase mt-3 tracking-widest text-[#0D0D0D]">Daftar Percakapan</h3>
                     </div>
-                    <div class="flex-1 overflow-y-auto divide-y-2 divide-[#0D0D0D] bg-[#F4F1EA]">
+                    <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#F4F1EA]">
                         @foreach($chatUsers as $cust)
                             <a href="{{ route('admin.chat.show', $cust->id) }}" 
-                                class="p-4 flex items-center space-x-3 transition-colors duration-100 block
+                                class="p-3 flex items-center space-x-3 transition-all duration-150 block border-[3px] border-black
                                 {{ $cust->id === $user->id 
-                                    ? 'bg-[#FFC700] text-black font-bold border-b-2 border-black' 
-                                    : 'bg-white hover:bg-[#FFC700]/30 text-[#0D0D0D]' }}">
+                                    ? 'bg-[#FFC700] text-black font-bold shadow-[3px_3px_0px_0px_black] translate-x-0.5 translate-y-0.5' 
+                                    : 'bg-white hover:bg-[#FFC700]/20 text-[#0D0D0D] shadow-[3px_3px_0px_0px_black]' }}">
                                 <div class="w-8 h-8 border-2 border-black bg-white flex items-center justify-center font-heading text-sm uppercase shadow-[1px_1px_0px_0px_black]">
                                     {{ substr($cust->name, 0, 1) }}
                                 </div>
@@ -83,9 +83,9 @@
                             <input type="hidden" name="receiver_id" value="{{ $user->id }}">
                             
                             <input type="text" id="chat-message-input" name="message" placeholder="Ketik balasan Anda..." autocomplete="off" required
-                                class="flex-1 border-[2.5px] border-[#0D0D0D] bg-white text-black font-bold text-xs focus:border-[#FFC700] focus:ring-0 rounded-none shadow-[2.5px_2.5px_0px_0px_black] px-3 py-2.5">
+                                class="flex-1 border-[3px] border-[#0D0D0D] bg-white text-black font-bold text-xs focus:border-[#FFC700] focus:ring-0 rounded-none shadow-[3px_3px_0px_0px_black] px-4 py-3">
                             
-                            <button type="submit" class="inline-flex items-center px-5 py-2.5 bg-[#FFC700] border-[2.5px] border-black text-black font-heading text-xs uppercase tracking-wider shadow-[2.5px_2.5px_0px_0px_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 active:shadow-none transition-all">
+                            <button type="submit" class="inline-flex items-center px-6 py-3 bg-[#FFC700] border-[3px] border-black text-black font-heading text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_black] hover:shadow-none hover:translate-x-1 hover:translate-y-1 active:shadow-none transition-all cursor-pointer font-extrabold">
                                 BALAS
                             </button>
                         </form>

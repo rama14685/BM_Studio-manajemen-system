@@ -14,6 +14,13 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <!-- Prevent Alpine.js x-cloak flash -->
+        <style>
+            [x-cloak] {
+                display: none !important;
+            }
+        </style>
     </head>
     <body class="font-sans antialiased bg-[#F4F1EA] text-[#0D0D0D] selection:bg-[#FFC700] selection:text-[#0D0D0D]">
         <div class="min-h-screen bg-[#F4F1EA] flex flex-col md:flex-row" x-data="{ sidebarOpen: true, mobileOpen: false }">

@@ -35,28 +35,34 @@
         @if($role === 'admin')
             <!-- Admin Links -->
             <x-sidebar-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')" icon="home" :sidebarOpen="true">
-                {{ __('Console') }}
+                {{ __('Overview') }}
             </x-sidebar-link>
             
             <x-sidebar-link :href="route('admin.bookings.index')" :active="request()->routeIs('admin.bookings.*')" icon="calendar" :sidebarOpen="true">
                 {{ __('Bookings') }}
             </x-sidebar-link>
             
-            <x-sidebar-link :href="route('admin.pos.index')" :active="request()->routeIs('admin.pos.*')" icon="cash" :sidebarOpen="true">
-                {{ __('POS Kasir') }}
-            </x-sidebar-link>
-            
             <x-sidebar-link :href="route('admin.finances.index')" :active="request()->routeIs('admin.finances.*')" icon="finance" :sidebarOpen="true">
-                {{ __('Keuangan') }}
+                {{ __('Keuangan (Finance)') }}
             </x-sidebar-link>
             
             <x-sidebar-link :href="route('admin.inventories.index')" :active="request()->routeIs('admin.inventories.*')" icon="inventory" :sidebarOpen="true">
-                {{ __('Inventaris') }}
+                {{ __('Inventaris (Inventory)') }}
+            </x-sidebar-link>
+
+            <x-sidebar-link :href="route('admin.employees.index')" :active="request()->routeIs('admin.employees.*')" icon="users" :sidebarOpen="true">
+                {{ __('Kelola Karyawan') }}
+            </x-sidebar-link>
+
+            <x-sidebar-link :href="route('admin.carousel.index')" :active="request()->routeIs('admin.carousel.*')" icon="carousel" :sidebarOpen="true">
+                {{ __('Carousel CMS') }}
             </x-sidebar-link>
             
             <x-sidebar-link :href="route('admin.chat.index')" :active="request()->routeIs('admin.chat.*')" icon="chat" :sidebarOpen="true" :badgeCount="$unreadCount">
-                {{ __('Chat Support') }}
+                {{ __('Chat Room') }}
             </x-sidebar-link>
+
+
         @else
             <!-- Customer Links -->
             <x-sidebar-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.dashboard') && !request()->has('anchor')" icon="home" :sidebarOpen="true">
@@ -150,28 +156,34 @@
         <nav class="flex-1 px-4 py-6 space-y-4 overflow-y-auto" @click="mobileOpen = false">
             @if($role === 'admin')
                 <x-sidebar-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')" icon="home" :sidebarOpen="true">
-                    {{ __('Console') }}
+                    {{ __('Overview') }}
                 </x-sidebar-link>
                 
                 <x-sidebar-link :href="route('admin.bookings.index')" :active="request()->routeIs('admin.bookings.*')" icon="calendar" :sidebarOpen="true">
                     {{ __('Bookings') }}
                 </x-sidebar-link>
                 
-                <x-sidebar-link :href="route('admin.pos.index')" :active="request()->routeIs('admin.pos.*')" icon="cash" :sidebarOpen="true">
-                    {{ __('POS Kasir') }}
-                </x-sidebar-link>
-                
                 <x-sidebar-link :href="route('admin.finances.index')" :active="request()->routeIs('admin.finances.*')" icon="finance" :sidebarOpen="true">
-                    {{ __('Keuangan') }}
+                    {{ __('Keuangan (Finance)') }}
                 </x-sidebar-link>
                 
                 <x-sidebar-link :href="route('admin.inventories.index')" :active="request()->routeIs('admin.inventories.*')" icon="inventory" :sidebarOpen="true">
-                    {{ __('Inventaris') }}
+                    {{ __('Inventaris (Inventory)') }}
+                </x-sidebar-link>
+
+                <x-sidebar-link :href="route('admin.employees.index')" :active="request()->routeIs('admin.employees.*')" icon="users" :sidebarOpen="true">
+                    {{ __('Kelola Karyawan') }}
+                </x-sidebar-link>
+
+                <x-sidebar-link :href="route('admin.carousel.index')" :active="request()->routeIs('admin.carousel.*')" icon="carousel" :sidebarOpen="true">
+                    {{ __('Carousel CMS') }}
                 </x-sidebar-link>
                 
                 <x-sidebar-link :href="route('admin.chat.index')" :active="request()->routeIs('admin.chat.*')" icon="chat" :sidebarOpen="true" :badgeCount="$unreadCount">
-                    {{ __('Chat Support') }}
+                    {{ __('Chat Room') }}
                 </x-sidebar-link>
+
+
             @else
                 <x-sidebar-link :href="route('customer.dashboard')" :active="request()->routeIs('customer.dashboard') && !request()->has('anchor')" icon="home" :sidebarOpen="true">
                     {{ __('Home') }}

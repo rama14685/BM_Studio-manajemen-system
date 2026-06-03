@@ -25,19 +25,49 @@
             $dates[] = now()->addDays($i);
         }
 
-        // Time slots definitions
+        // Time slots definitions strictly display operational hours from 09:00 AM to 12:00 AM (Midnight)
         $timeSlots = [
-            ['start' => '08:00:00', 'end' => '10:00:00', 'display' => '08:00 - 10:00'],
-            ['start' => '10:00:00', 'end' => '12:00:00', 'display' => '10:00 - 12:00'],
-            ['start' => '12:00:00', 'end' => '14:00:00', 'display' => '12:00 - 14:00'],
-            ['start' => '14:00:00', 'end' => '16:00:00', 'display' => '14:00 - 16:00'],
-            ['start' => '16:00:00', 'end' => '18:00:00', 'display' => '16:00 - 18:00'],
-            ['start' => '18:00:00', 'end' => '20:00:00', 'display' => '18:00 - 20:00'],
-            ['start' => '20:00:00', 'end' => '22:00:00', 'display' => '20:00 - 22:00'],
+            ['start' => '09:00:00', 'end' => '11:00:00', 'display' => '09:00 - 11:00', 'duration' => 2],
+            ['start' => '11:00:00', 'end' => '13:00:00', 'display' => '11:00 - 13:00', 'duration' => 2],
+            ['start' => '13:00:00', 'end' => '15:00:00', 'display' => '13:00 - 15:00', 'duration' => 2],
+            ['start' => '15:00:00', 'end' => '17:00:00', 'display' => '15:00 - 17:00', 'duration' => 2],
+            ['start' => '17:00:00', 'end' => '19:00:00', 'display' => '17:00 - 19:00', 'duration' => 2],
+            ['start' => '19:00:00', 'end' => '21:00:00', 'display' => '19:00 - 21:00', 'duration' => 2],
+            ['start' => '21:00:00', 'end' => '23:00:00', 'display' => '21:00 - 23:00', 'duration' => 2],
+            ['start' => '23:00:00', 'end' => '00:00:00', 'display' => '23:00 - 00:00', 'duration' => 1],
         ];
     @endphp
 
-    <div class="py-12 bg-[#F4F1EA] min-h-screen text-[#0D0D0D]" x-data="{ selectedDate: '{{ now()->toDateString() }}' }">
+    <div class="py-12 bg-[#F4F1EA] min-h-screen text-[#0D0D0D]" x-data="{ 
+        selectedDate: '{{ now()->toDateString() }}',
+        showCheckout: false,
+        studioId: '',
+        studioName: '',
+        bookingDate: '',
+        startTime: '',
+        duration: 2,
+        pricePerHour: 0,
+        paymentMethod: 'qris',
+        openCheckout(studioId, studioName, date, startTime, pricePerHour, duration = 2) {
+            this.studioId = studioId;
+            this.studioName = studioName;
+            this.bookingDate = date;
+            this.startTime = startTime;
+            this.pricePerHour = pricePerHour;
+            this.duration = duration;
+            this.showCheckout = true;
+        },
+        getTotalPrice() {
+            return this.pricePerHour * this.duration;
+        },
+        formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+    }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             
             <!-- Success/Error Alert -->
@@ -163,11 +193,11 @@
                                                                 <span class="text-[8px] uppercase tracking-wider font-heading mt-1 text-white">BOOKED</span>
                                                             </div>
                                                         @else
-                                                            <a href="{{ route('bookings.create', ['studio_id' => $studio->id, 'date' => $date->toDateString(), 'start_time' => substr($slot['start'], 0, 5), 'duration' => 2]) }}" 
-                                                               class="bg-white hover:bg-[#39FF14] text-black border-2 border-black p-3 flex flex-col justify-center items-center text-center shadow-[1.5px_1.5px_0px_0px_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                                                            <button @click.prevent="openCheckout('{{ $studio->id }}', '{{ $studio->name }}', '{{ $date->toDateString() }}', '{{ substr($slot['start'], 0, 5) }}', {{ $studio->price_per_hour }}, {{ $slot['duration'] }})" 
+                                                               class="bg-white hover:bg-[#FFC700] text-black border-2 border-black p-3 flex flex-col justify-center items-center text-center shadow-[1.5px_1.5px_0px_0px_black] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer group">
                                                                 <span class="font-mono text-xs font-bold text-black">{{ substr($slot['start'], 0, 5) }} - {{ substr($slot['end'], 0, 5) }}</span>
-                                                                <span class="text-[8px] uppercase tracking-wider font-heading mt-1 text-green-600 group-hover:text-black">AVAILABLE</span>
-                                                            </a>
+                                                                <span class="text-[8px] uppercase tracking-wider font-heading mt-1 text-green-600 group-hover:text-black font-extrabold">AVAILABLE</span>
+                                                            </button>
                                                         @endif
                                                     @endforeach
                                                 </div>
@@ -293,6 +323,98 @@
                 @endif
             </div>
 
+        </div>
+    </div>
+
+    <!-- BOOKING CHECKOUT & PAYMENT MODAL -->
+    <div 
+        x-show="showCheckout" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+        @keydown.escape.window="showCheckout = false"
+    >
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/70 transition-opacity" @click="showCheckout = false"></div>
+
+        <!-- Modal Content Container -->
+        <div class="relative bg-white border-[4px] border-[#0D0D0D] p-6 max-w-lg w-full shadow-[8px_8px_0px_0px_#0D0D0D] z-55 overflow-hidden transform transition-all">
+            <!-- Modal Header -->
+            <div class="bg-[#FFC700] border-[3px] border-[#0D0D0D] p-4 mb-5 shadow-[3px_3px_0px_0px_rgba(13,13,13,1)]">
+                <h3 class="font-heading text-xl uppercase tracking-widest text-[#0D0D0D]">
+                    ⚡ CHECKOUT & CONFIRM ⚡
+                </h3>
+            </div>
+
+            <!-- Booking Summary -->
+            <div class="border-[3px] border-black p-4 bg-[#F4F1EA] space-y-2.5 font-mono text-xs font-bold mb-5 shadow-[2px_2px_0px_0px_#0D0D0D]">
+                <div class="flex justify-between border-b border-black/10 pb-1.5 text-sm font-heading">
+                    <span class="text-black">STUDIO:</span>
+                    <span class="text-[#E14D2A]" x-text="studioName.toUpperCase()"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>TANGGAL:</span>
+                    <span x-text="bookingDate"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>JAM LATIHAN:</span>
+                    <span x-text="startTime + ' WIB'"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span>DURASI SEWA:</span>
+                    <span x-text="duration + ' JAM'"></span>
+                </div>
+                <div class="flex justify-between border-t border-black/10 pt-1.5 text-sm font-bold text-black">
+                    <span>TOTAL HARGA:</span>
+                    <span class="text-[#E14D2A]" x-text="formatRupiah(getTotalPrice())"></span>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <form method="POST" action="{{ route('bookings.store') }}">
+                @csrf
+                <input type="hidden" name="studio_id" :value="studioId">
+                <input type="hidden" name="date" :value="bookingDate">
+                <input type="hidden" name="start_time" :value="startTime">
+                <input type="hidden" name="duration" :value="duration">
+
+                <!-- Payment Methods -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-black uppercase tracking-wider">Pilih Metode Pembayaran</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <!-- QRIS -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="payment_method" value="qris" x-model="paymentMethod" class="sr-only">
+                            <div :class="paymentMethod === 'qris' ? 'bg-[#FFC700] border-[#0D0D0D]' : 'bg-[#F4F1EA] border-zinc-400 opacity-60'" class="border-[3px] p-3 text-center transition-all duration-150 shadow-[2px_2px_0px_0px_#0D0D0D] font-heading text-[10px] uppercase text-black hover:opacity-100 select-none">
+                                📱 QRIS
+                            </div>
+                        </label>
+                        <!-- E-Wallet -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="payment_method" value="ewallet" x-model="paymentMethod" class="sr-only">
+                            <div :class="paymentMethod === 'ewallet' ? 'bg-[#FFC700] border-[#0D0D0D]' : 'bg-[#F4F1EA] border-zinc-400 opacity-60'" class="border-[3px] p-3 text-center transition-all duration-150 shadow-[2px_2px_0px_0px_#0D0D0D] font-heading text-[10px] uppercase text-black hover:opacity-100 select-none">
+                                💳 E-Wallet
+                            </div>
+                        </label>
+                        <!-- Bank Transfer -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="payment_method" value="bank" x-model="paymentMethod" class="sr-only">
+                            <div :class="paymentMethod === 'bank' ? 'bg-[#FFC700] border-[#0D0D0D]' : 'bg-[#F4F1EA] border-zinc-400 opacity-60'" class="border-[3px] p-3 text-center transition-all duration-150 shadow-[2px_2px_0px_0px_#0D0D0D] font-heading text-[10px] uppercase text-black hover:opacity-100 select-none">
+                                🏦 Bank
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 flex flex-col space-y-3">
+                    <button type="submit" class="w-full py-4 bg-[#FFC700] border-[3px] border-[#0D0D0D] text-black font-heading text-sm uppercase tracking-wider shadow-[4px_4px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all text-center font-extrabold cursor-pointer">
+                        PAY & CONFIRM
+                    </button>
+                    <button type="button" @click="showCheckout = false" class="w-full py-2.5 bg-white border-[3px] border-[#0D0D0D] text-black font-heading text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#0D0D0D] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all text-center cursor-pointer">
+                        BATALKAN
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

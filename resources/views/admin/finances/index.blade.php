@@ -1,3 +1,19 @@
+@php
+    $totalIncome = \App\Models\Finance::where('type', 'income')->sum('amount');
+    $totalExpense = \App\Models\Finance::where('type', 'expense')->sum('amount');
+    $netProfit = $totalIncome - $totalExpense;
+
+    $catIncomeBooking = \App\Models\Finance::where('type', 'income')->where('category', 'booking')->sum('amount');
+    $catIncomeDrinks = \App\Models\Finance::where('type', 'income')->where('category', 'drinks_stock')->sum('amount');
+    $catIncomeOther = \App\Models\Finance::where('type', 'income')->where('category', 'other')->sum('amount');
+
+    $catExpenseStock = \App\Models\Finance::where('type', 'expense')->where('category', 'drinks_stock')->sum('amount');
+    $catExpenseElectricity = \App\Models\Finance::where('type', 'expense')->where('category', 'electricity')->sum('amount');
+    $catExpenseOther = \App\Models\Finance::where('type', 'expense')->where('category', 'other')->sum('amount');
+
+    $maxVal = max(1, $totalIncome, $totalExpense);
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -19,6 +35,93 @@
                     🤘 SUCCESS: {{ strtoupper(session('success')) }}
                 </div>
             @endif
+
+            <!-- ANALYTICAL DATA CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Revenue Card -->
+                <div class="bg-white border-[3px] border-black p-6 shadow-[5px_5px_0px_0px_rgba(13,13,13,1)]">
+                    <span class="text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">[ TOTAL_REVENUE ]</span>
+                    <h3 class="text-lg font-heading uppercase mt-1">Total Pemasukan</h3>
+                    <div class="font-heading text-4xl text-black mt-4 tracking-wider">
+                        Rp {{ number_format($totalIncome, 0, ',', '.') }}
+                    </div>
+                </div>
+
+                <!-- Expense Card -->
+                <div class="bg-white border-[3px] border-black p-6 shadow-[5px_5px_0px_0px_rgba(13,13,13,1)]">
+                    <span class="text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">[ TOTAL_EXPENSES ]</span>
+                    <h3 class="text-lg font-heading uppercase mt-1">Total Pengeluaran</h3>
+                    <div class="font-heading text-4xl text-[#E14D2A] mt-4 tracking-wider">
+                        Rp {{ number_format($totalExpense, 0, ',', '.') }}
+                    </div>
+                </div>
+
+                <!-- Profit Card -->
+                <div class="bg-[#FFC700] border-[3px] border-black p-6 shadow-[5px_5px_0px_0px_rgba(13,13,13,1)]">
+                    <span class="text-xs font-mono font-bold text-black/60 uppercase tracking-widest">[ NET_PROFIT ]</span>
+                    <h3 class="text-lg font-heading uppercase mt-1">Laba Bersih</h3>
+                    <div class="font-heading text-4xl text-black mt-4 tracking-wider">
+                        Rp {{ number_format($netProfit, 0, ',', '.') }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- HIGH-CONTRAST BAR CHART -->
+            <div class="bg-white border-[3px] border-black p-6 shadow-[5px_5px_0px_0px_rgba(13,13,13,1)]">
+                <h3 class="font-heading text-xl uppercase tracking-wider border-b-2 border-black pb-2 mb-6">📊 PERBANDINGAN PENDAPATAN VS PENGELUARAN</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+                    <!-- Left: High-Contrast Income/Expense Bars -->
+                    <div class="space-y-6">
+                        <!-- Income Bar -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2 font-mono font-bold text-xs">
+                                <span>⚡ TOTAL PEMASUKAN</span>
+                                <span>Rp {{ number_format($totalIncome, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="w-full bg-[#F4F1EA] border-[3px] border-black h-12 overflow-hidden shadow-[3px_3px_0px_0px_black]">
+                                @php $incomePct = $maxVal > 0 ? ($totalIncome / $maxVal) * 100 : 0; @endphp
+                                <div class="bg-[#FFC700] h-full border-r-[3px] border-black transition-all duration-500" style="width: {{ $incomePct }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Expense Bar -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2 font-mono font-bold text-xs">
+                                <span>🔥 TOTAL PENGELUARAN</span>
+                                <span>Rp {{ number_format($totalExpense, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="w-full bg-[#F4F1EA] border-[3px] border-black h-12 overflow-hidden shadow-[3px_3px_0px_0px_black]">
+                                @php $expensePct = $maxVal > 0 ? ($totalExpense / $maxVal) * 100 : 0; @endphp
+                                <div class="bg-[#E14D2A] h-full border-r-[3px] border-black transition-all duration-500" style="width: {{ $expensePct }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Breakdown details -->
+                    <div class="border-[3px] border-black p-4 bg-[#F4F1EA] shadow-[3px_3px_0px_0px_black] font-mono text-xs font-bold space-y-3">
+                        <h4 class="font-heading text-xs uppercase tracking-wider text-black border-b border-black/20 pb-1.5">[ KATEGORI BREAKDOWN ]</h4>
+                        <div class="flex justify-between">
+                            <span>Sewa Studio (In):</span>
+                            <span class="text-zinc-650">Rp {{ number_format($catIncomeBooking, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Kasir Minuman (In):</span>
+                            <span class="text-zinc-650">Rp {{ number_format($catIncomeDrinks, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Pengeluaran Minuman (Out):</span>
+                            <span class="text-[#E14D2A]">Rp {{ number_format($catExpenseStock, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between border-t border-black/10 pt-2 text-black font-bold">
+                            <span>OPERATIONAL BALANCE:</span>
+                            <span class="{{ $netProfit >= 0 ? 'text-green-600' : 'text-[#E14D2A]' }}">
+                                Rp {{ number_format($netProfit, 0, ',', '.') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Filters -->
             <div class="bg-white border-[3px] border-black p-6 shadow-[4px_4px_0px_0px_black]">
